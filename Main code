@@ -1,0 +1,126 @@
+#Import Libraries
+import tensorflow as tf
+from tensorflow.keras.datasets import mnist
+from tensorflow.keras.models import Sequential
+from tensorflow.keras.layers import Flatten, Dense
+from tensorflow.keras.utils import to_categorical
+
+#Loadig the MNIST dataset
+(x_train, y_train), (x_test, y_test) = mnist.load_data()
+
+#Normalize the data (0–255 to 0–1)
+x_train = x_train / 255.0
+x_test = x_test / 255.0
+
+#One-hot encode the labels
+y_train = to_categorical(y_train)
+y_test = to_categorical(y_test)
+
+#Build the model
+model = Sequential([
+    Flatten(input_shape=(28, 28)),
+    Dense(128, activation='relu'),
+    Dense(10, activation='softmax')
+])
+
+# Compile the model
+model.compile(optimizer='adam',
+              loss='categorical_crossentropy',
+              metrics=['accuracy'])
+
+#  Train the model
+model.fit(x_train, y_train, epochs=5, batch_size=32, validation_split=0.1)
+
+#  Evaluate the model
+loss, accuracy = model.evaluate(x_test, y_test)
+print(f"Test Accuracy: {accuracy:.4f}")
+#-----------------------------------------------------
+import matplotlib.pyplot as plt
+import numpy as np
+
+#  Pick one sample from the test set
+sample_index = 5733  # You can change this index to test different images
+sample_image = x_test[sample_index]
+sample_label = y_test[sample_index]
+
+#  Display the image
+plt.imshow(sample_image, cmap='gray')
+plt.title("Actual Digit")
+plt.show()
+
+#  Prepare the image for prediction
+input_image = sample_image.reshape(1, 28, 28)  # Reshape for model input
+
+#  Make prediction
+prediction = model.predict(input_image)
+predicted_digit = np.argmax(prediction)
+
+print(f"Predicted Digit: {predicted_digit}")
+#-----------------------------------------------------
+
+#CNN
+
+from tensorflow.keras.layers import Conv2D, MaxPooling2D, Flatten, Dense
+
+# Load the MNIST dataset
+(x_train, y_train), (x_test, y_test) = mnist.load_data()
+
+#  Reshape and Normalize
+x_train = x_train.reshape(-1, 28, 28, 1) / 255.0
+x_test = x_test.reshape(-1, 28, 28, 1) / 255.0
+
+#  One-hot encode labels
+y_train = to_categorical(y_train)
+y_test = to_categorical(y_test)
+
+#  Build CNN Model
+model = Sequential([
+    Conv2D(32, kernel_size=(3, 3), activation='relu', input_shape=(28, 28, 1)),
+    MaxPooling2D(pool_size=(2, 2)),
+
+    Conv2D(64, kernel_size=(3, 3), activation='relu'),
+    MaxPooling2D(pool_size=(2, 2)),
+
+    Flatten(),
+    Dense(128, activation='relu'),
+    Dense(10, activation='softmax')
+])
+
+#  Compile the model
+model.compile(optimizer='adam',
+              loss='categorical_crossentropy',
+              metrics=['accuracy'])
+
+#  Train the model
+model.fit(x_train, y_train, epochs=5, batch_size=64, validation_split=0.1)
+
+#  Evaluate the model
+loss, accuracy = model.evaluate(x_test, y_test)
+print(f"Test Accuracy: {accuracy:.4f}")
+#-----------------------------------------------------
+import cv2
+import numpy as np
+from PIL import Image
+
+# Step 1: Load your image
+img_path = '/content/Screenshot 2025-04-07 001019.png'  # <- change this to your image path
+img = Image.open(img_path).convert('L')  # Convert to grayscale
+
+# Step 2: Resize to 28x28
+img = img.resize((28, 28))
+
+# Step 3: Convert to NumPy array and invert colors if needed
+img_array = np.array(img)
+
+# Optional: Invert colors (if black background, white digit)
+img_array = 255 - img_array
+
+# Step 4: Normalize and reshape for model
+img_array = img_array / 255.0
+input_img = img_array.reshape(1, 28, 28, 1)
+
+# Step 5: Predict using trained model
+prediction = model.predict(input_img)
+predicted_digit = np.argmax(prediction)
+
+print(f"Predicted Digit: {predicted_digit}")
